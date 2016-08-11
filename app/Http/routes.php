@@ -12,5 +12,9 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('home');
 });
+Route::get('/info', function () {
+    return view('info');
+});
+Route::post('/csv/upload', 'CsvImportController@upload');
