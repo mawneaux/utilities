@@ -11,27 +11,22 @@ SELECT * FROM Medlists WHERE TableName = 'PatientProfileStatus'
 SELECT
 	PatientID,
   RespSameAsPatient=ISNULL(PatientSameAsGuarantor,0),
-	RTRIM(LTRIM(pp.First))+';'+RTRIM(LTRIM(pp.Middle))+';'+RTRIM(LTRIM(pp.Last))+';'+RTRIM(LTRIM(pp.Suffix)) AS PatientName,
+	ISNULL(RTRIM(LTRIM(pp.First)), '')+';'+ISNULL(RTRIM(LTRIM(pp.Middle)), '')+';'+ISNULL(RTRIM(LTRIM(pp.Last)), '')+';'+ISNULL(RTRIM(LTRIM(pp.Suffix)), '') AS PatientName,
 	PatientAddr1=ISNULL(pp.Address1,NULL),
-	PatientAddr2=pp.phone1+';'+pp.EmailAddress,
-	RTRIM(LTRIM(pp.City))+';'+RTRIM(LTRIM(pp.State)) AS PatientCityState,
+	PatientAddr2=ISNULL(pp.phone1, '')+';'+ISNULL(pp.EmailAddress, ''),
+	ISNULL(RTRIM(LTRIM(pp.City)), '')+';'+ISNULL(RTRIM(LTRIM(pp.State)), '') AS PatientCityState,
 	PatientCity=pp.City,
 	PatientState=pp.State,
 	PatientZip=ISNULL(pp.Zip,''),
 
-	RTRIM(LTRIM(pr.First))+';'+RTRIM(LTRIM(pr.Middle))+';'+RTRIM(LTRIM(pr.Last))+';'+RTRIM(LTRIM(pr.Suffix)) AS PatientRespName,
+	ISNULL(RTRIM(LTRIM(pr.First)), '')+';'+ISNULL(RTRIM(LTRIM(pr.Middle)), '')+';'+ISNULL(RTRIM(LTRIM(pr.Last)), '')+';'+ISNULL(RTRIM(LTRIM(pr.Suffix)), '') AS PatientRespName,
 
 	PatientRespAddr1=ISNULL(pr.Address1,NULL),
 	PatientRespAddr2=pr.Address2,
 
-  RTRIM(LTRIM(pr.City))+';'+RTRIM(LTRIM(pr.State)) AS PatientRespCityState,
+  ISNULL(RTRIM(LTRIM(pr.City)), '')+';'+ISNULL(RTRIM(LTRIM(pr.State)), '') AS PatientRespCityState,
 
-	PatientRespCity=pr.CitBf022574
-
-
-
-
-    
+	PatientRespCity=pr.City,
 	PatientRespState=pr.State,
 	PatientRespZip= ISNULL(pr.Zip,NULL),
 	FinancialClass=isnull(ml.Description,''),
