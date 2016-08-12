@@ -1,4 +1,4 @@
-* Patient List*/
+-- Patient List
 SET NOCOUNT ON
 
 DECLARE @Zip varchar(40)
@@ -9,23 +9,33 @@ SELECT * FROM Medlists WHERE TableName = 'PatientProfileStatus'
 )
 
 SELECT
-	PatientID, RespSameAsPatient=isnull(PatientSameAsGuarantor,0),
-	TRIM(pp.Last) + ' ' + ISNULL(pp.Suffix,'') + ', ' + ISNULL(pp.First,'') + ' ' + ISNULL(pp.Middle,'')) AS PatientName,
+	PatientID,
+  RespSameAsPatient=ISNULL(PatientSameAsGuarantor,0),
+	RTRIM(LTRIM(pp.First))+';'+RTRIM(LTRIM(pp.Middle))+';'+RTRIM(LTRIM(pp.Last))+';'+RTRIM(LTRIM(pp.Suffix)) AS PatientName,
 	PatientAddr1=ISNULL(pp.Address1,NULL),
-	PatientAddr2=pp.Address2,
-	PatientCityState = CASE WHEN IsNULL(pp.Zip, '0')= '0' THEN '---'ELSE pp.City + ',' + pp.State END ,
+	PatientAddr2=pp.phone1+';'+pp.EmailAddress,
+	RTRIM(LTRIM(pp.City))+';'+RTRIM(LTRIM(pp.State)) AS PatientCityState,
 	PatientCity=pp.City,
 	PatientState=pp.State,
-	PatientZip=ISNULL(pp.Zip,NULL),
-	RTRIM(RTRIM(pr.Last + ' ' + ISNULL(pr.Suffix,'')) + ', ' + ISNULL(pr.First,'') + ' ' + ISNULL(pr.Middle,'')) AS PatientRespName,
-	PatientRespAddr1=ISNULL(pr.Address1,'---'),
+	PatientZip=ISNULL(pp.Zip,''),
+
+	RTRIM(LTRIM(pr.First))+';'+RTRIM(LTRIM(pr.Middle))+';'+RTRIM(LTRIM(pr.Last))+';'+RTRIM(LTRIM(pr.Suffix)) AS PatientRespName,
+
+	PatientRespAddr1=ISNULL(pr.Address1,NULL),
 	PatientRespAddr2=pr.Address2,
-	PatientRespCityState = CASE WHEN IsNULL(pr.Zip, '0')= '0'  THEN '---' ELSE pr.City + ',' + pr.State END ,
-	PatientRespCity=pr.City,
+
+  RTRIM(LTRIM(pr.City))+';'+RTRIM(LTRIM(pr.State)) AS PatientRespCityState,
+
+	PatientRespCity=pr.CitBf022574
+
+
+
+
+    
 	PatientRespState=pr.State,
-	PatientRespZip= ISNULL(pr.Zip,'---'),
-	FinancialClass=isnull(ml.Description,'---'),
-	Doctor=ISNULL(df.ListName,'---'),
+	PatientRespZip= ISNULL(pr.Zip,NULL),
+	FinancialClass=isnull(ml.Description,''),
+	Doctor=ISNULL(df.ListName,NULL),
 	Facility=ISNULL(df1.OrgName,'Unknown'),
 	Balance=isnull(ppa.PatBalance,0)+isnull(ppa.InsBalance,0),
 	pp.DeathDate,
