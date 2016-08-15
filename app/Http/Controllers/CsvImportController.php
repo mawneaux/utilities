@@ -33,7 +33,7 @@ class CsvImportController extends Controller {
         if (($handle = fopen($file, 'r')) !== false) {
             $header = fgetcsv($handle, 0, $delimiter, '"', '"');
             while ($row = fgetcsv($handle, 0, $delimiter)) {
-                if (1) {
+                if ($rowcount <= 100) {
                     $data[] = $row;
                     $rowcount++;
                 }
@@ -53,10 +53,11 @@ class CsvImportController extends Controller {
 
                 if (array_key_exists($k, $cfg['map'])) {
                     $hasFieldName = $cfg['map'][$k]['field_name'];
-                    if (!$hasFieldName) {
+                    if (!$hasFieldName && strlen(trim($v))) {
                         $fields = $cfg['map'][$k]['fields'];
                         $values = explode($cfg['map'][$k]['separator'], $v);
                         $rowCount = 0;
+
                         foreach ($fields as $field) {
                             if (strlen($v)) {
                                 $data[$rowk][$fields[$rowCount]] = (strlen(trim($values[$rowCount]))) ? trim($values[$rowCount]) : null;
@@ -76,7 +77,7 @@ class CsvImportController extends Controller {
 
     protected function reportConfig($report) {
         $reports = ['patient_list' => [
-                'ignore_if_null' => [16],
+                'ignore_if_null' => [17, 19, 21, 28],
                 'map' => [
                     16 => ['field_name' => 'patient_id', 'field_type' => 'integer', 'separator' => false, 'fields' => false],
                     17 => ['field_name' => false, 'field_type' => 'string', 'separator' => ';', 'fields' => ['first_name', 'middle', 'last_name', 'suffix']],
@@ -93,59 +94,65 @@ class CsvImportController extends Controller {
                     36 => ['field_name' => 'updated_time', 'field_type' => 'time', 'separator' => false, 'fields' => false],
                     37 => ['field_name' => 'facility', 'field_type' => 'string', 'separator' => false, 'fields' => false]
                 ],
-                'guarded' => ['updated_date', 'updated_time']
+                'guarded' => ['updated_date', 'updated_time'],
+                'class' => '\App\Patient',
+                'lookup' => 'patient_id'
             ],
             'appointments' => [
-                'ignore_if_null' => [33],
+                'ignore_if_null' => [15, 43],
                 'map' => [
-                    15 => ['field_name' => false, 'field_type' => 'string', 'separator' => '  ', 'fields' => ['appt_date', 'junk']],
-                    31 => ['field_name' => 'appt_time', 'field_type' => 'string', 'separator' => false, 'fields' => false],
-                    32 => ['field_name' => 'appt_type', 'field_type' => 'string', 'separator' => false, 'fields' => false],
+                    15 => ['field_name' => false, 'field_type' => 'string', 'separator' => '  ', 'fields' => ['date']],
+                    31 => ['field_name' => 'time', 'field_type' => 'string', 'separator' => false, 'fields' => false],
+                    34 => ['field_name' => 'appt_type', 'field_type' => 'string', 'separator' => false, 'fields' => false],
                     33 => ['field_name' => 'patient_id', 'field_type' => 'integer', 'separator' => false, 'fields' => false],
                     43 => ['field_name' => false, 'field_type' => 'string', 'separator' => ';', 'fields' => ['status', 'appt_id']],
                     49 => ['field_name' => 'note', 'field_type' => 'string', 'separator' => false, 'fields' => false],
                     58 => ['field_name' => 'acct_status', 'field_type' => 'string', 'separator' => false, 'fields' => false],
                     61 => ['field_name' => 'facility', 'field_type' => 'string', 'separator' => false, 'fields' => false]
                 ],
-                'guarded' => ['patient_id', 'first_name']
+                'guarded' => [],
+                'class' => '\App\Appointment',
+                'lookup' => 'appt_id'
             ]
         ];
         return(array_key_exists($report, $reports)) ? $reports[$report] : false;
     }
 
-    protected function loadData($patients) {
+    protected function loadData($records) {
         $cfg = $this->reportConfig($this->reportType);
         $guarded = $cfg['guarded'];
-        //return $patients;
-        $total = count($patients);
+        //return $records;
+        $total = count($records);
         $count = 0;
         $badCount = 0;
         $updated = 0;
-        foreach ($patients as $patient) {
-            //return $patient;
-            $row = \App\Patient::where('patient_id', $patient['patient_id'])->first();
-            //return $row;
-            if (count($row)) {
-                $update = false;
-                foreach ($patient as $field => $v) {
-                    if (!in_array($field, $guarded)) {
-                        $row->$field = $v;
-                        $update = true;
+        foreach ($records as $record) {
+            if (array_key_exists($cfg['lookup'], $record)) {
+                //return $record;
+                $row = $cfg['class']::where($cfg['lookup'], $record[$cfg['lookup']])->first();
+                //return $row;
+                if (count($row)) {
+                    $update = false;
+                    foreach ($record as $field => $v) {
+                        if (!in_array($field, $guarded)) {
+                            $row->$field = $v;
+                            $update = true;
+                        }
                     }
-                }
-                if ($update) {
-                    $affected = $row->update();
-                    if ($affected) {
-                        $updated++;
+                    if ($update) {
+                        $affected = $row->update();
+                        if ($affected) {
+                            $updated++;
+                        }
                     }
-                }
-            } else {
-                $pt = new \App\Patient();
-                $pt->fill($patient)->save();
-                if ($pt->id) {
-                    $count++;
                 } else {
-                    $badCount++;
+                    $rec = new $cfg['class']();
+                    $rec->fill($record)->save();
+                    if ($rec->id) {
+                        $count++;
+                    } else {
+                        $badCount++;
+                    }
                 }
             }
         }

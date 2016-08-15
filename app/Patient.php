@@ -18,4 +18,24 @@ class Patient extends Model {
         $this->attributes['date_of_birth'] = ($value) ? date('Y-m-d', strtotime($value)) : null;
     }
 
+    /**
+        * Clean first name set.
+          *
+          * @param  string $value
+          * @return string
+          */
+    public function setFirstNameAttribute($value) {
+        $this->attributes['first_name'] = ($value) ? strtoupper(preg_replace("/[^A-Za-z-\s]/", "", str_replace('<MRG>', '', $value))) : null;
+    }
+
+    /**
+        * Clean last name set.
+          *
+          * @param  string $value
+          * @return string
+          */
+    public function setLastNameAttribute($value) {
+        $this->attributes['last_name'] = ($value) ? strtoupper(preg_replace("/[^A-Za-z-\s]/", "", str_replace('<MRG>', '', $value))) : null;
+    }
+
 }
