@@ -15,8 +15,10 @@ class CreateAppointmentsTable extends Migration
         Schema::create('appointments', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->bigInteger('appt_id')->unique();
-            $table->string('appt_type', 255)->nullable()->index();
             $table->bigInteger('patient_id')->nullable()->index();
+            $table->bigInteger('patient_visit_id')->nullable()->index();
+            $table->string('appt_type', 255)->nullable()->index();
+            $table->string('financial_class', 255)->nullable()->index();
             $table->string('facility')->nullable()->index();
             $table->date('date')->nullable()->index();
             $table->time('time')->nullable()->index();
